@@ -77,6 +77,7 @@ export default function TrendHijack() {
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
+          tools: [{ googleSearch: {} }],
           responseMimeType: 'application/json',
           responseSchema: {
             type: Type.ARRAY,

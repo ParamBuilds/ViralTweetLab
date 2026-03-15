@@ -47,6 +47,7 @@ export default function ViralIdeaGenerator() {
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
+          tools: [{ googleSearch: {} }],
           responseMimeType: 'application/json',
         }
       });
