@@ -120,6 +120,13 @@ export default function Generator() {
         await refreshUserData();
       }
 
+      // Update public profile total tweets
+      const publicProfileRef = doc(db, 'public_profiles', user.uid);
+      await updateDoc(publicProfileRef, {
+        totalTweets: increment(1),
+        lastActive: new Date().toISOString()
+      });
+
       // Add doc id to results for making public
       setResults(generatedTweets.map((t: any) => ({ ...t, docId: docRef.id })));
 

@@ -121,6 +121,13 @@ export default function ThreadBuilder() {
       });
       await refreshUserData();
 
+      // Update public profile total tweets
+      const publicProfileRef = doc(db, 'public_profiles', user.uid);
+      await updateDoc(publicProfileRef, {
+        totalTweets: increment(1),
+        lastActive: new Date().toISOString()
+      });
+
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to generate thread. Please try again.');

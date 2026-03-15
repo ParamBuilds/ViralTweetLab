@@ -23,6 +23,9 @@ export function Navbar() {
         </Link>
         
         <div className="flex items-center gap-4">
+          <Link href="/hall-of-fame" className="text-white/60 hover:text-white transition-colors text-sm font-medium">
+            Hall of Fame
+          </Link>
           <Link href="/leaderboard" className="text-white/60 hover:text-white transition-colors text-sm font-medium">
             Leaderboard
           </Link>

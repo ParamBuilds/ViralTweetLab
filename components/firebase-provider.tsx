@@ -64,6 +64,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserData(docSnap.data() as UserData);
         }
 
+        // Handle public profile
+        const publicProfileRef = doc(db, 'public_profiles', currentUser.uid);
+        const publicProfileSnap = await getDoc(publicProfileRef);
+        
+        if (!publicProfileSnap.exists()) {
+          await setDoc(publicProfileRef, {
+            uid: currentUser.uid,
+            displayName: currentUser.displayName || 'Anonymous',
+            photoURL: currentUser.photoURL || '',
+            totalTweets: 0,
+            lastActive: new Date().toISOString()
+          });
+        } else {
+          // Update last active and profile info
+          await setDoc(publicProfileRef, {
+            displayName: currentUser.displayName || 'Anonymous',
+            photoURL: currentUser.photoURL || '',
+            lastActive: new Date().toISOString()
+          }, { merge: true });
+        }
+
         // Setup real-time listener for user data
         unsubscribeSnapshot = onSnapshot(docRef, (doc) => {
           if (doc.exists()) {
