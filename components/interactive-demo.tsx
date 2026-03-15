@@ -8,8 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Sparkles, Copy, Check } from 'lucide-react';
 import { motion } from 'motion/react';
 
-const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
-
 export function InteractiveDemo() {
   const [topic, setTopic] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -25,6 +23,12 @@ export function InteractiveDemo() {
     setResult(null);
 
     try {
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("API Key is missing");
+      }
+      const ai = new GoogleGenAI({ apiKey });
+
       const prompt = `You are an expert Twitter ghostwriter.
       Generate 1 highly engaging viral tweet about: "${topic}".
       

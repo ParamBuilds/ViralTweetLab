@@ -40,7 +40,7 @@ export default function HashtagOptimizer() {
           </div>
           <h2 className="text-3xl font-display font-bold mb-4">Pro Feature</h2>
           <p className="text-white/60 mb-8 max-w-md">
-            Hashtag Optimizer is exclusively available on the Pro plan. Upgrade to get AI-curated hashtags that maximize your tweet's reach.
+            Hashtag Optimizer is exclusively available on the Pro plan. Upgrade to get AI-curated hashtags that maximize your tweet&apos;s reach.
           </p>
           <Button className="bg-primary hover:bg-primary/90 text-white neon-border px-8 py-6 text-lg rounded-full">
             Upgrade to Pro - ₹299/mo
@@ -142,7 +142,7 @@ export default function HashtagOptimizer() {
         <h1 className="text-3xl md:text-4xl font-display font-bold mb-2 flex items-center justify-center gap-2">
           <Hash className="text-primary" /> Hashtag Optimizer
         </h1>
-        <p className="text-white/60">Get AI-curated hashtags to maximize your tweet's reach.</p>
+        <p className="text-white/60">Get AI-curated hashtags to maximize your tweet&apos;s reach.</p>
       </div>
 
       <Card className="bg-white/5 border-white/10 mb-8">

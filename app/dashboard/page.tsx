@@ -135,7 +135,7 @@ export default function Dashboard() {
               </div>
               <CardTitle>Hashtag Optimizer</CardTitle>
               <CardDescription className="text-white/60">
-                Get AI-curated hashtags to maximize your tweet's reach.
+                Get AI-curated hashtags to maximize your tweet&apos;s reach.
               </CardDescription>
             </CardHeader>
           </Card>

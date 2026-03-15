@@ -9,8 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Lightbulb, Copy, Check } from 'lucide-react';
 import { motion } from 'motion/react';
 
-const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
-
 export default function ViralIdeaGenerator() {
   const { user } = useAuth();
   const [niche, setNiche] = useState('');
@@ -30,6 +28,12 @@ export default function ViralIdeaGenerator() {
     setIdeas([]);
 
     try {
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("API Key is missing");
+      }
+      const ai = new GoogleGenAI({ apiKey });
+
       const prompt = `You are an expert Twitter ghostwriter and content strategist.
       Generate 10 highly engaging, viral tweet ideas for the following niche: "${niche}".
       
