@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of ViralTweetLab",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "User role" },
+        "subscriptionTier": { "type": "string", "enum": ["free", "pro"], "description": "Current subscription plan" },
+        "tweetsGenerated": { "type": "number", "description": "Number of tweets generated this month" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "subscriptionTier", "tweetsGenerated", "createdAt"]
+    },
+    "Tweet": {
+      "title": "Tweet",
+      "description": "A generated tweet, thread, or improved tweet",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the user who generated this" },
+        "topic": { "type": "string", "description": "The topic or original prompt" },
+        "content": { "type": "string", "description": "The generated content (JSON stringified array of tweets)" },
+        "type": { "type": "string", "enum": ["tweet", "thread", "improved"], "description": "Type of generation" },
+        "viralityScore": { "type": "number", "description": "Calculated virality score (0-100)" },
+        "isPublic": { "type": "boolean", "description": "Whether this is visible on the leaderboard" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "topic", "content", "type", "createdAt", "isPublic"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles and usage tracking"
+    },
+    "/tweets/{tweetId}": {
+      "schema": { "$ref": "#/entities/Tweet" },
+      "description": "Generated tweets and threads"
+    }
+  }
+}

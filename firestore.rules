@@ -1,0 +1,134 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - email: string (required, immutable)
+    //   - role: string (required, 'user' or 'admin')
+    //   - subscriptionTier: string (required, 'free' or 'pro')
+    //   - tweetsGenerated: number (required)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: tweets
+    // Document ID: {tweetId}
+    // Fields:
+    //   - userId: string (required, immutable)
+    //   - topic: string (required)
+    //   - content: string (required)
+    //   - type: string (required, 'tweet', 'thread', 'improved')
+    //   - viralityScore: number (optional)
+    //   - isPublic: boolean (required)
+    //   - createdAt: timestamp (required, immutable)
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (request.auth.token.email == "real2render@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'email', 'role', 'subscriptionTier', 'tweetsGenerated', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             data.email is string && isValidEmail(data.email) && data.email.size() < 150 &&
+             data.role in ['user', 'admin'] &&
+             data.subscriptionTier in ['free', 'pro'] &&
+             data.tweetsGenerated is number && data.tweetsGenerated >= 0 &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidTweet(data) {
+      return hasOnlyAllowedFields(['userId', 'topic', 'content', 'type', 'viralityScore', 'isPublic', 'createdAt']) &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() < 100 &&
+             data.topic is string && data.topic.size() > 0 && data.topic.size() < 500 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 50000 &&
+             data.type in ['tweet', 'thread', 'improved', 'trend', 'hashtag'] &&
+             (!('viralityScore' in data) || (data.viralityScore is number && data.viralityScore >= 0 && data.viralityScore <= 100)) &&
+             data.isPublic is bool &&
+             isValidDateString(data.createdAt);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      allow create: if isOwner(userId) && 
+                    isValidUser(request.resource.data) && 
+                    request.resource.data.uid == userId &&
+                    (request.resource.data.role == 'user' || isAdmin()) &&
+                    request.resource.data.subscriptionTier == 'free' &&
+                    request.resource.data.tweetsGenerated == 0;
+                    
+      allow update: if (isOwner(userId) || isAdmin()) && 
+                    isValidUser(request.resource.data) &&
+                    request.resource.data.uid == resource.data.uid &&
+                    request.resource.data.email == resource.data.email &&
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    ((request.resource.data.role == resource.data.role) || isAdmin()) &&
+                    ((request.resource.data.subscriptionTier == resource.data.subscriptionTier) || isAdmin()) &&
+                    // Users can only increment their own tweetsGenerated by 1, or admin can do anything
+                    (isAdmin() || (request.resource.data.tweetsGenerated == resource.data.tweetsGenerated + 1) || (request.resource.data.tweetsGenerated == resource.data.tweetsGenerated));
+                    
+      allow delete: if isAdmin();
+    }
+
+    match /tweets/{tweetId} {
+      // Anyone can read public tweets (for leaderboard), owners and admins can read all
+      allow read: if (resource.data.isPublic == true) || isDocOwner() || isAdmin();
+      
+      allow create: if isAuthenticated() && 
+                    isValidTweet(request.resource.data) &&
+                    request.resource.data.userId == request.auth.uid;
+                    
+      allow update: if (isDocOwner() || isAdmin()) && 
+                    isValidTweet(request.resource.data) &&
+                    request.resource.data.userId == resource.data.userId &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+                    
+      allow delete: if isDocOwner() || isAdmin();
+    }
+  }
+}
